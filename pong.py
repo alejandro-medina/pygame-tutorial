@@ -16,7 +16,8 @@ class Pala(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.centerx = x
 		self.rect.centery = HEIGHT / 2
-		self.speed = 0.6
+		self.speed = 0.4
+
 	def move(self, time, keys):
 		if self.rect.top >= 0:
 			if keys[K_UP]:
@@ -24,6 +25,14 @@ class Pala(pygame.sprite.Sprite):
 		if self.rect.bottom <= HEIGHT:
 			if keys[K_DOWN]:
 				self.rect.centery += self.speed * time
+
+	def ia(self, time, ball):
+		if ball.speed[0] and ball.rect.centerx >= WIDTH / 2:
+			if ball.rect.centery > self.rect.centery:
+					self.rect.centery += time * self.speed
+			if  ball.rect.centery < self.rect.centery:
+					self.rect.centery -= time * self.speed
+
 
 class Ball(pygame.sprite.Sprite):
 	def __init__(self):
@@ -34,7 +43,7 @@ class Ball(pygame.sprite.Sprite):
 		self.rect.centery = HEIGHT / 2
 		self.speed = [0.4, -0.4]
 
-	def update(self, time, pala_player):
+	def update(self, time, pala_player, pala_cpu):
 		self.rect.centerx += self.speed[0] * time
 		self.rect.centery += self.speed[1] * time
 		if self.rect.left <= 0 or self.rect.right >= WIDTH:
@@ -48,6 +57,9 @@ class Ball(pygame.sprite.Sprite):
 				self.speed[0] = -self.speed[0]
 				self.rect.centerx += self.speed[0] * time
 
+		if pygame.sprite.collide_rect(self, pala_cpu):
+				self.speed[0] = -self.speed[0]
+				self.rect.centerx += self.speed[0] * time
 # Functions
 
 def load_image(filename, transparent = False):
@@ -71,7 +83,7 @@ def main():
 	# Draw the ball
 	ball = Ball()
 	pala_player = Pala(30)
-
+	pala_cpu = Pala(WIDTH -30)
 	clock = pygame.time.Clock()
 
 	while True:
@@ -83,12 +95,14 @@ def main():
 		
 		time = clock.tick(60)
 		keys = pygame.key.get_pressed()
-		ball.update(time, pala_player)
+		ball.update(time, pala_player, pala_cpu)
 		pala_player.move(time, keys)
+		pala_cpu.ia(time, ball)
 
 		screen.blit(bg, (0, 0))
 		screen.blit(ball.image, ball.rect)
 		screen.blit(pala_player.image, pala_player.rect)
+		screen.blit(pala_cpu.image, pala_cpu.rect)
 		pygame.display.flip()
 
 if __name__ == '__main__':
