@@ -16,7 +16,7 @@ class Pala(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.centerx = x
 		self.rect.centery = HEIGHT / 2
-		self.speed = 0.5
+		self.speed = 0.6
 	def move(self, time, keys):
 		if self.rect.top >= 0:
 			if keys[K_UP]:
@@ -32,9 +32,9 @@ class Ball(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.centerx = WIDTH / 2
 		self.rect.centery = HEIGHT / 2
-		self.speed = [0.5, -0.5]
+		self.speed = [0.4, -0.4]
 
-	def update(self, time):
+	def update(self, time, pala_player):
 		self.rect.centerx += self.speed[0] * time
 		self.rect.centery += self.speed[1] * time
 		if self.rect.left <= 0 or self.rect.right >= WIDTH:
@@ -43,6 +43,10 @@ class Ball(pygame.sprite.Sprite):
 		if self.rect.bottom >= HEIGHT or self.rect.top <= 0:
 			self.speed[1] = -self.speed[1]
 			self.rect.centery += self.speed[1] * time
+
+		if pygame.sprite.collide_rect(self, pala_player):
+				self.speed[0] = -self.speed[0]
+				self.rect.centerx += self.speed[0] * time
 
 # Functions
 
@@ -79,7 +83,7 @@ def main():
 		
 		time = clock.tick(60)
 		keys = pygame.key.get_pressed()
-		ball.update(time)
+		ball.update(time, pala_player)
 		pala_player.move(time, keys)
 
 		screen.blit(bg, (0, 0))
