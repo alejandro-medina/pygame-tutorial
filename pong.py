@@ -41,11 +41,17 @@ class Ball(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.centerx = WIDTH / 2
 		self.rect.centery = HEIGHT / 2
-		self.speed = [0.4, -0.4]
+		self.speed = [0.5, -0.5]
 
-	def update(self, time, pala_player, pala_cpu):
+	def update(self, time, pala_player, pala_cpu, scoreboard):
 		self.rect.centerx += self.speed[0] * time
 		self.rect.centery += self.speed[1] * time
+
+		if self.rect.left <= 0:
+			scoreboard[1] += 1
+		if self.rect.right >= WIDTH:
+			scoreboard[0] += 1
+
 		if self.rect.left <= 0 or self.rect.right >= WIDTH:
 			self.speed[0] = -self.speed[0]
 			self.rect.centerx += self.speed[0] * time
@@ -60,6 +66,8 @@ class Ball(pygame.sprite.Sprite):
 		if pygame.sprite.collide_rect(self, pala_cpu):
 				self.speed[0] = -self.speed[0]
 				self.rect.centerx += self.speed[0] * time
+
+		return scoreboard
 # Functions
 
 def load_image(filename, transparent = False):
@@ -74,6 +82,15 @@ def load_image(filename, transparent = False):
 		image.set_colorkey(color, RLEACCEL)
 	return image
 
+def text(text, posx, posy, color=(255, 255, 255)):
+	fuente = pygame.font.Font('fonts/DroidSans.ttf', 25)
+	salida = pygame.font.Font.render(fuente, text, 1, color)
+	salida_rect = salida.get_rect()
+	salida_rect.centerx = posx
+	salida_rect.centery = posy
+	return salida, salida_rect
+	
+
 def main():
 	screen = pygame.display.set_mode((WIDTH, HEIGHT))
 	pygame.display.set_caption("Pong game")
@@ -86,6 +103,9 @@ def main():
 	pala_cpu = Pala(WIDTH -30)
 	clock = pygame.time.Clock()
 
+	# Define the scoreboard
+	scoreboard = [0, 0]
+
 	while True:
 		# Exit the program
 		for event in pygame.event.get():
@@ -95,11 +115,16 @@ def main():
 		
 		time = clock.tick(60)
 		keys = pygame.key.get_pressed()
-		ball.update(time, pala_player, pala_cpu)
+		scoreboard = ball.update(time, pala_player, pala_cpu, scoreboard)
 		pala_player.move(time, keys)
 		pala_cpu.ia(time, ball)
 
+		p_player, p_player_rect = text(str(scoreboard[0]), WIDTH/4, 40)
+		p_cpu, p_cpu_rect = text(str(scoreboard[1]), WIDTH-WIDTH/4, 40)
+
 		screen.blit(bg, (0, 0))
+		screen.blit(p_player, p_player_rect)
+		screen.blit(p_cpu, p_cpu_rect)
 		screen.blit(ball.image, ball.rect)
 		screen.blit(pala_player.image, pala_player.rect)
 		screen.blit(pala_cpu.image, pala_cpu.rect)
